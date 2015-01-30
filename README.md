@@ -38,3 +38,4 @@ it and run it as usual.  For more information on IDE support, visit:
       securityGroup: hdpSecurityGroup
       initialSize: 5
 
+This will deploy 5 VMs and install the Ambari server on one and Ambari agents on the rest.  There is an installHDP effector that will install a given set of services on a given set of locations.
