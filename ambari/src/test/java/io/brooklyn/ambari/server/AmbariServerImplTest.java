@@ -1,18 +1,23 @@
 package io.brooklyn.ambari.server;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.jayway.jsonpath.PathNotFoundException;
-
-import org.testng.annotations.Test;
-
-import io.brooklyn.ambari.server.AmbariServerImpl;
-
-import java.util.List;
-
 import static brooklyn.test.Asserts.assertThat;
 import static brooklyn.util.collections.CollectionFunctionals.contains;
 import static brooklyn.util.collections.CollectionFunctionals.sizeEquals;
+
+import java.util.List;
+
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import io.brooklyn.ambari.rest.AmbariRequestInterceptor;
+import io.brooklyn.ambari.rest.domain.Components;
+import io.brooklyn.ambari.rest.domain.ServiceComponent;
+import io.brooklyn.ambari.rest.endpoint.ServiceEndpoint;
+import retrofit.RestAdapter;
 
 public class AmbariServerImplTest {
 
@@ -41,6 +46,31 @@ public class AmbariServerImplTest {
         assertThat(getHostsFromJson(JSON_WITH_FOUR_HOSTS), contains("ip-10-91-154-171.eu-west-1.compute.internal"));
     }
 
+    private UsernamePasswordCredentials usernamePasswordCredentials = new UsernamePasswordCredentials("admin", "admin");
+    @Test
+    public void testAmbariComponents() {
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint("http://ec2-54-204-131-80.compute-1.amazonaws.com:8080/")
+                .setRequestInterceptor(new AmbariRequestInterceptor(usernamePasswordCredentials))
+                .setLogLevel(RestAdapter.LogLevel.FULL)
+                .build();
+
+        Components components = restAdapter.create(ServiceEndpoint.class).getComponents("Cluster1");
+        Assert.assertEquals(components.getComponents().size(), 28);
+    }
+
+    @Test
+    public void testAmbariHDFSComponent() {
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint("http://ec2-54-204-131-80.compute-1.amazonaws.com:8080/")
+                .setRequestInterceptor(new AmbariRequestInterceptor(usernamePasswordCredentials))
+                .setLogLevel(RestAdapter.LogLevel.FULL)
+                .build();
+
+        ServiceComponent component = restAdapter.create(ServiceEndpoint.class).getComponent("Cluster1", "DATANODE");
+        Assert.assertEquals(component.getComponentInfo().getComponent(), "DATANODE");
+        Assert.assertEquals(component.getMetrics().get("boottime"), 4.321734317E9);
+    }
 
     private List<String> getHostsFromJson(String json) {
         return ambariServer.getHosts().apply(getAsJsonObject(json));

@@ -19,9 +19,11 @@
 
 package io.brooklyn.ambari.rest.domain;
 
-import com.google.gson.annotations.SerializedName;
+import java.util.Map;
 
 import javax.annotation.Nullable;
+
+import com.google.gson.annotations.SerializedName;
 
 public class ServiceComponent {
 
@@ -31,6 +33,9 @@ public class ServiceComponent {
     @SerializedName("ServiceComponentInfo")
     private ServiceComponentInfo componentInfo;
 
+    @SerializedName("metrics")
+    private Map<String, Object> metrics;
+
     @Nullable
     public String getHref() {
         return href;
@@ -39,6 +44,10 @@ public class ServiceComponent {
     @Nullable
     public ServiceComponentInfo getComponentInfo() {
         return componentInfo;
+    }
+
+    public Map getMetrics() {
+        return metrics;
     }
 
     public static class ServiceComponentInfo {

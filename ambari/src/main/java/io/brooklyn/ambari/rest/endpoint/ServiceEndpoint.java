@@ -19,13 +19,19 @@
 
 package io.brooklyn.ambari.rest.endpoint;
 
+import java.util.Map;
+
+import io.brooklyn.ambari.rest.domain.Components;
 import io.brooklyn.ambari.rest.domain.Request;
+import io.brooklyn.ambari.rest.domain.ServiceComponent;
 import io.brooklyn.ambari.rest.domain.ServiceComponents;
 import io.brooklyn.ambari.rest.domain.Services;
 import retrofit.client.Response;
-import retrofit.http.*;
-
-import java.util.Map;
+import retrofit.http.Body;
+import retrofit.http.GET;
+import retrofit.http.POST;
+import retrofit.http.PUT;
+import retrofit.http.Path;
 
 public interface ServiceEndpoint {
 
@@ -34,6 +40,12 @@ public interface ServiceEndpoint {
 
     @GET("/api/v1/clusters/{cluster}/services/{service}")
     ServiceComponents getServiceComponents(@Path("cluster") String cluster, @Path("service") String service);
+
+    @GET("/api/v1/clusters/{cluster}/components")
+    Components getComponents(@Path("cluster") String cluster);
+
+    @GET("/api/v1/clusters/{cluster}/components/{component}")
+    ServiceComponent getComponent(@Path("cluster") String cluster, @Path("component") String component);
 
     @POST("/api/v1/clusters/{cluster}/services/{service}")
     Response addService(@Path("cluster") String cluster, @Path("service") String service);
