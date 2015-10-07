@@ -24,13 +24,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import com.google.api.client.repackaged.com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 
+import brooklyn.config.ConfigKey;
 import brooklyn.entity.basic.Entities;
 import brooklyn.entity.effector.EffectorTasks;
 import brooklyn.entity.software.SshEffectorTasks;
+import brooklyn.event.AttributeSensor;
+import brooklyn.event.basic.Sensors;
 import brooklyn.management.Task;
 import brooklyn.util.ssh.BashCommands;
+import brooklyn.util.text.Identifiers;
 import io.brooklyn.ambari.AmbariCluster;
 import io.brooklyn.ambari.agent.AmbariAgent;
 import io.brooklyn.ambari.server.AmbariServer;
@@ -39,15 +44,26 @@ public class KerberosImpl extends AbstractExtraService implements Kerberos {
 
     @Override
     public Map<String, Map> getAmbariConfig() {
+
         return ImmutableMap.<String, Map>builder()
                 .put("krb5-config", ImmutableMap.builder()
-                        .put("kdb.password", KDB_PASSWORD)
-                        .put("kdc.adminpassword", getConfig(KDC_ADMINPASSWORD))
+                        .put("kdb.password", getOrGeneratePassword(KDB_PASSWORD))
+                        .put("kdc.adminpassword", getOrGeneratePassword(KDC_ADMIN_PASSWORD))
                         .put("KDC_REALM", getConfig(KDC_REALM))
                         .put("kdc.admin", getConfig(KDC_ADMIN))
                         .put("KDC_DOMAIN", getConfig(KDC_DOMAIN))
                         .build())
                 .build();
+    }
+
+    private String getOrGeneratePassword(ConfigKey<String> passwordConfigKey) {
+        String password = getConfig(passwordConfigKey);
+        if(Strings.isNullOrEmpty(password)) {
+            password = Identifiers.makeRandomId(12);
+            AttributeSensor<String> stringAttributeSensor = Sensors.newStringSensor(passwordConfigKey.getName(), passwordConfigKey.getDescription());
+            getMutableEntityType().addSensor(stringAttributeSensor);
+        }
+        return password;
     }
 
 

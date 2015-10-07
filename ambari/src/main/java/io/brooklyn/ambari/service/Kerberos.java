@@ -23,19 +23,15 @@ import brooklyn.config.ConfigKey;
 import brooklyn.entity.basic.ConfigKeys;
 import brooklyn.entity.proxying.ImplementedBy;
 import brooklyn.util.flags.SetFromFlag;
-import brooklyn.util.text.Identifiers;
 
 @ImplementedBy(KerberosImpl.class)
 public interface Kerberos extends ExtraService {
 
-	String password = Identifiers.makeRandomId(12);
-
     @SetFromFlag("kdb.password")
-    ConfigKey<String> KDB_PASSWORD = ConfigKeys.newStringConfigKey("kdb.password", "KDB password", password);
-
+    ConfigKey<String> KDB_PASSWORD = ConfigKeys.newStringConfigKey("kdb.password", "KDB password");
 
     @SetFromFlag("kdc.adminpassword")
-    ConfigKey<String> KDC_ADMINPASSWORD = ConfigKeys.newStringConfigKey("kdc.admin.password", "kdc admin password", password);
+    ConfigKey<String> KDC_ADMIN_PASSWORD = ConfigKeys.newStringConfigKey("kdc.admin.password", "kdc admin password");
 
     @SetFromFlag("kdc.realm")
     ConfigKey<String> KDC_REALM = ConfigKeys.newStringConfigKey("kdc.realm", "kdc.realm", "HORTOWORKS.COM");
