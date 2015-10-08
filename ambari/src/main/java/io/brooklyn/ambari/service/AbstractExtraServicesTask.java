@@ -29,7 +29,7 @@ import brooklyn.entity.basic.EntityLocal;
 import brooklyn.entity.basic.ServiceStateLogic;
 import brooklyn.management.Task;
 
-abstract class AbstractExtraServicesTask<T extends Entity> implements Function<T, Void> {
+public abstract class AbstractExtraServicesTask<T extends Entity> implements Function<T, Void> {
 
     protected String errorKey = "ranger.mysql";
     protected String errorDescription = "Error initialising Ranger requirements";
