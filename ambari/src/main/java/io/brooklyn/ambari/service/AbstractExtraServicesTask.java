@@ -34,7 +34,7 @@ public abstract class AbstractExtraServicesTask<T extends Entity> implements Fun
     protected String errorKey = "ranger.mysql";
     protected String errorDescription = "Error initialising Ranger requirements";
 
-    abstract Task<Integer> sshTaskApply(T node);
+    public abstract Task<Integer> sshTaskApply(T node);
 
     @Nullable
     @Override
