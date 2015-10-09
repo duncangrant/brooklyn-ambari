@@ -96,7 +96,7 @@ public class KerberosImpl extends AbstractExtraService implements Kerberos {
         @Override
         public Task<Integer> sshTaskApply(AmbariServer ambariServer) {
             Task<Integer> sshTask = SshEffectorTasks
-                    .ssh(BashCommands.sudo("echo principal admin/admin >> /var/kerberos/krb5kdc/kadm5.acl"))
+                    .ssh(BashCommands.sudo("sh -c \"echo admin/admin       x >> /var/kerberos/krb5kdc/kadm5.acl\""))
                     .summary("Initialise Ranger requirements on " + ambariServer.getId())
                     .machine(EffectorTasks.getSshMachine(ambariServer))
                     .newTask()
