@@ -42,7 +42,6 @@ import com.google.gson.JsonElement;
 import com.jayway.jsonpath.JsonPath;
 
 import brooklyn.enricher.Enrichers;
-import brooklyn.entity.Entity;
 import brooklyn.entity.annotation.EffectorParam;
 import brooklyn.entity.basic.Attributes;
 import brooklyn.entity.basic.Entities;
@@ -255,29 +254,43 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
     @Override
     public void addServiceToCluster(@EffectorParam(name = "cluster", description = "Cluster name") final String cluster,
                                     @EffectorParam(name = "service", description = "Service name") final String service,
-                                    @EffectorParam(name = "mappings", description = "Mappings of component to host") Map<String, String> mappings,
-                                    @EffectorParam(name = "configuration", description = "Services Configuration", nullable = true, defaultValue = EffectorParam.MAGIC_STRING_MEANING_NULL) Map<String, Map<Object, Object>> configuration) {
+                                    @EffectorParam(name = "mappings", description = "Mappings of component to host") final Map<String, String> mappings,
+                                    @EffectorParam(name = "configuration", description = "Services Configuration", nullable = true, defaultValue = EffectorParam.MAGIC_STRING_MEANING_NULL) final Map<String, Map<Object, Object>> configuration) {
         waitForServiceUp();
 
         final ServiceEndpoint serviceEndpoint = restAdapter.create(ServiceEndpoint.class);
         final HostEndpoint hostEndpoint = restAdapter.create(HostEndpoint.class);
 
-        // Step 1 - Add the service to the cluster
-        serviceEndpoint.addService(cluster, service);
+        // Pre Cluster deployment if necessary
 
-        // Step 2 - Add Components to the service
-        // Step 3 - Create host components
-        for (Map.Entry<String, String> mapping : mappings.entrySet()) {
-            serviceEndpoint.createComponent(cluster, service, mapping.getKey());
-            hostEndpoint.createHostComponent(cluster, mapping.getValue(), mapping.getKey());
-        }
+        //TODO will run all pre cluster deploy tasks not just new ones - tasks should be idempotent
+        getParentCluster().preClusterDeploy();
 
-        // Step 4 - Create configuration, if needed
-        if (configuration != null) {
-            for (Map.Entry<String, Map<Object, Object>> entry : configuration.entrySet()) {
-                createServiceConfiguration(cluster, entry.getKey(), entry.getValue());
+        final Task configureServiceTask = Tasks.builder()
+        .name(String.format("Setup %s service", service))
+        .description(String.format("Setup %s service and components ready for installation through Ambari REST API", service))
+        .body(new Runnable() {
+            @Override
+            public void run() {
+                // Step 1 - Add the service to the cluster
+                serviceEndpoint.addService(cluster, service);
+
+                // Step 2 - Add Components to the service
+                // Step 3 - Create host components
+                for (Map.Entry<String, String> mapping : mappings.entrySet()) {
+                    serviceEndpoint.createComponent(cluster, service, mapping.getKey());
+                    hostEndpoint.createHostComponent(cluster, mapping.getValue(), mapping.getKey());
+                }
+
+                // Step 4 - Create configuration, if needed
+                if (configuration != null) {
+                    for (Map.Entry<String, Map<Object, Object>> entry : configuration.entrySet()) {
+                        createServiceConfiguration(cluster, entry.getKey(), entry.getValue());
+                    }
+                }
             }
-        }
+        })
+        .build();
 
         final Task installationTask = Tasks.builder()
                 .name(String.format("Install %s service", service))
@@ -286,7 +299,10 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
                         @Override
                         public void run() {
                             // Step 5 - Install the service
-                            final Request request = serviceEndpoint.updateService(cluster, service, ImmutableMap.builder()
+                            final Request request = serviceEndpoint.updateService(
+                                    cluster,
+                                    service,
+                                    ImmutableMap.builder()
                                     .put("RequestInfo", ImmutableMap.builder()
                                             .put("context", String.format("Install %s service", service))
                                             .build())
@@ -313,6 +329,9 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
                     }
                 }).build();
 
+        // Queue the "Configure" subtask and wait for its completion. If something goes wrong during execution, an
+        // exception will be thrown which will stop the effector and prevent the "start" subtask to run.
+        DynamicTasks.queue(configureServiceTask);
         // Queue the "Installation" subtask and wait for its completion. If something goes wrong during execution, an
         // exception will be thrown which will stop the effector and prevent the "start" subtask to run.
         DynamicTasks.queue(installationTask);
@@ -360,11 +379,15 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
 
     @Override
     public boolean agentOnServer() {
-        Iterable<AmbariCluster> ambariClusters = Iterables.filter(Entities.ancestors(this), AmbariCluster.class);
-        for(Entity parent: ambariClusters) {
+        AmbariCluster parent = getParentCluster();
+        if(parent!=null) {
                 return !parent.getConfig(AmbariCluster.SERVER_COMPONENTS).isEmpty();
         }
         return false;
+    }
+
+    private AmbariCluster getParentCluster() {
+        return Iterables.getFirst(Iterables.filter(Entities.ancestors(this), AmbariCluster.class), null);
     }
 
     private List<? extends Map<?, ?>> getConfigurations(Map<String, Map> config) {

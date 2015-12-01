@@ -40,7 +40,7 @@ public final class ClusterStateEventListener implements SensorEventListener<Stri
         Boolean installed = entity.getAttribute(AmbariCluster.CLUSTER_SERVICES_INSTALLED);
         if (StringUtils.isNotBlank(sensorEvent.getValue()) && sensorEvent.getValue().equals("COMPLETED") && !Boolean.TRUE.equals(installed)) {
             try {
-                entity.postDeployCluster();
+                entity.postClusterDeploy();
             } catch (ExtraServiceException ex) {
                 ServiceStateLogic.ServiceNotUpLogic.updateNotUpIndicator((EntityLocal) entity, "ambari.extra.service", ex.getMessage());
                 throw ex;

@@ -164,6 +164,11 @@ public interface AmbariCluster extends BasicStartable {
     AmbariServer getMasterAmbariServer();
 
     /**
+     * Runs pre cluster deploy
+     */
+    void preClusterDeploy();
+
+    /**
      * Configure and deploy a new Hadoop cluster on the registered Ambari agents.
      */
     void deployCluster() throws AmbariApiException, ExtraServiceException;
@@ -171,8 +176,7 @@ public interface AmbariCluster extends BasicStartable {
     /**
      * Call after a the hadoop cluster has been deployed
      */
-    // TODO: Rename to postClusterDeploy to be consistent
-    void postDeployCluster() throws ExtraServiceException;
+    void postClusterDeploy() throws ExtraServiceException;
 
     /**
      * Urls for extra stack definitions e.g. Kerberos

@@ -288,6 +288,20 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
             }
         }
 
+        preClusterDeploy();
+
+        LOG.info("{} calling cluster-deploy", this);
+        try {
+            Request request = getMasterAmbariServer().deployCluster("Cluster1", "mybp", recommendationWrapper, configuration);
+        } catch (AmbariApiException ex) {
+            // If the cluster failed to deploy, we first put the server "ON FIRE" and throw again the exception for the
+            // cluster to handle it properly.
+            ServiceStateLogic.ServiceNotUpLogic.updateNotUpIndicator((EntityLocal) getMasterAmbariServer(), "ambari.api", ex.getMessage());
+            throw ex;
+        }
+    }
+
+    public void preClusterDeploy() {
         LOG.info("{} calling pre-cluster-deploy on all Ambari nodes", this);
         try {
             Task<List<?>> preClusterDeployTasks = createParallelTask("preClusterDeploy", new PreClusterDeployFunction());
@@ -301,20 +315,10 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
                 throw new ExtraServiceException(ex.getMessage());
             }
         }
-
-        LOG.info("{} calling cluster-deploy", this);
-        try {
-            Request request = getMasterAmbariServer().deployCluster("Cluster1", "mybp", recommendationWrapper, configuration);
-        } catch (AmbariApiException ex) {
-            // If the cluster failed to deploy, we first put the server "ON FIRE" and throw again the exception for the
-            // cluster to handle it properly.
-            ServiceStateLogic.ServiceNotUpLogic.updateNotUpIndicator((EntityLocal) getMasterAmbariServer(), "ambari.api", ex.getMessage());
-            throw ex;
-        }
     }
 
     @Override
-    public void postDeployCluster() throws ExtraServiceException {
+    public void postClusterDeploy() throws ExtraServiceException {
         // Set the flag to true so the post deployment won't happen multiple times
         setAttribute(CLUSTER_SERVICES_INSTALLED, true);
 
