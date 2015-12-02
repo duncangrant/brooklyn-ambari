@@ -272,21 +272,25 @@ public class AmbariServerImpl extends SoftwareProcessImpl implements AmbariServe
         .body(new Runnable() {
             @Override
             public void run() {
-                // Step 1 - Add the service to the cluster
-                serviceEndpoint.addService(cluster, service);
+                try {
+                    // Step 1 - Add the service to the cluster
+                    serviceEndpoint.addService(cluster, service);
 
-                // Step 2 - Add Components to the service
-                // Step 3 - Create host components
-                for (Map.Entry<String, String> mapping : mappings.entrySet()) {
-                    serviceEndpoint.createComponent(cluster, service, mapping.getKey());
-                    hostEndpoint.createHostComponent(cluster, mapping.getValue(), mapping.getKey());
-                }
-
-                // Step 4 - Create configuration, if needed
-                if (configuration != null) {
-                    for (Map.Entry<String, Map<Object, Object>> entry : configuration.entrySet()) {
-                        createServiceConfiguration(cluster, entry.getKey(), entry.getValue());
+                    // Step 2 - Add Components to the service
+                    // Step 3 - Create host components
+                    for (Map.Entry<String, String> mapping : mappings.entrySet()) {
+                        serviceEndpoint.createComponent(cluster, service, mapping.getKey());
+                        hostEndpoint.createHostComponent(cluster, mapping.getValue(), mapping.getKey());
                     }
+
+                    // Step 4 - Create configuration, if needed
+                    if (configuration != null) {
+                        for (Map.Entry<String, Map<Object, Object>> entry : configuration.entrySet()) {
+                            createServiceConfiguration(cluster, entry.getKey(), entry.getValue());
+                        }
+                    }
+                } catch (RetrofitError retrofitError) {
+                    throw new AmbariApiException(retrofitError);
                 }
             }
         })
