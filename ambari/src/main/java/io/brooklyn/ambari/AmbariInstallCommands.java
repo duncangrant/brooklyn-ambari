@@ -18,17 +18,15 @@
  */
 package io.brooklyn.ambari;
 
-import org.apache.brooklyn.location.ssh.SshMachineLocation;
+import static org.apache.brooklyn.util.ssh.BashCommands.*;
 
-import static org.apache.brooklyn.util.ssh.BashCommands.alternatives;
-import static org.apache.brooklyn.util.ssh.BashCommands.chainGroup;
-import static org.apache.brooklyn.util.ssh.BashCommands.commandToDownloadUrlAs;
-import static org.apache.brooklyn.util.ssh.BashCommands.ifExecutableElse1;
-import static org.apache.brooklyn.util.ssh.BashCommands.installExecutable;
-import static org.apache.brooklyn.util.ssh.BashCommands.sudo;
+import java.util.List;
 
 import org.apache.brooklyn.api.location.OsDetails;
+import org.apache.brooklyn.location.ssh.SshMachineLocation;
 import org.apache.brooklyn.util.ssh.BashCommands;
+
+import com.google.common.collect.ImmutableList;
 
 
 public class AmbariInstallCommands {
@@ -108,4 +106,16 @@ public class AmbariInstallCommands {
     private String getMajorVersion() {
         return version.charAt(0) + ".x";
     }
+
+    public List<String> setHostname(String fqdn, String hostnameScriptLocation) {
+        List<String> commands = ImmutableList.of(
+                BashCommands.sudo("echo " +
+                        "'#!/bin/sh\n" +
+                        "echo " + fqdn +
+                        "' > " + hostnameScriptLocation),
+                BashCommands.sudo("chmod a+x " + hostnameScriptLocation)
+        );
+        return commands;
+    }
+
 }

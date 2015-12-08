@@ -77,7 +77,6 @@ public class AmbariServerSshDriver extends JavaSoftwareProcessSshDriver implemen
         ImmutableList<String> commands =
                 ImmutableList.<String>builder()
                         .add(ambariInstallHelper.installAmbariRequirements(getMachine()))
-                        .addAll(BashCommands.setHostname(fqdn))
                         .add(installPackage("ambari-server"))
                         .add(sudo("ambari-server setup -s"))
                         .build();

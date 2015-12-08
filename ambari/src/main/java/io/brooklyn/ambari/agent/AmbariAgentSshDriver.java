@@ -27,7 +27,6 @@ import org.apache.brooklyn.entity.java.JavaSoftwareProcessSshDriver;
 import org.apache.brooklyn.entity.software.base.SoftwareProcess;
 import org.apache.brooklyn.location.ssh.SshMachineLocation;
 import org.apache.brooklyn.util.collections.MutableMap;
-import org.apache.brooklyn.util.ssh.BashCommands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,7 +79,7 @@ public class AmbariAgentSshDriver extends JavaSoftwareProcessSshDriver implement
         ImmutableList<String> commands =
                 ImmutableList.<String>builder()
                         .add(defaultAmbariInstallHelper.installAmbariRequirements(getMachine()))
-                        .addAll(BashCommands.setHostname(fqdn))
+                        .addAll(defaultAmbariInstallHelper.setHostname(fqdn, getHostnameScriptLocation()))
                         .add(installPackage("ambari-agent"))
                         .build();
 
@@ -113,4 +112,7 @@ public class AmbariAgentSshDriver extends JavaSoftwareProcessSshDriver implement
         return entity.getConfig(AmbariAgent.TEMPLATE_CONFIGURATION_URL);
     }
 
+    public String getHostnameScriptLocation() {
+        return "/tmp/hostname.sh";
+    }
 }

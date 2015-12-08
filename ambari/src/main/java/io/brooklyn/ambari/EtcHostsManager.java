@@ -41,7 +41,8 @@ public class EtcHostsManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(EtcHostsManager.class);
 
-    private EtcHostsManager() {}
+    private EtcHostsManager() {
+    }
 
     /**
      * For each machine, set its own hostname correctly, and add the other entity's details to /etc/hosts
@@ -72,7 +73,7 @@ public class EtcHostsManager {
             // that the first line maps the hostname to its actual IP address. So we partly override the behaviour of
             // this method later by pre-pending to /etc/hosts.
 
-            // Find and set entity's own hostname
+//            // Find and set entity's own hostname
             Maybe<String> ip = Machines.findSubnetOrPrivateIp(e);
             String key = e.getAttribute(addressSensor);
             if (ip.isAbsentOrNull()) {
@@ -81,7 +82,7 @@ public class EtcHostsManager {
             } else if (!mapping.containsKey(key)) {
                 LOG.debug("{} has no hostname mapping, not setting hostname", e);
             } else {
-                commands.addAll(BashCommands.setHostname(mapping.get(key)));
+//                commands.addAll(BashCommands.setHostname(mapping.get(key)));
             }
 
             // Add the other entity's details to /etc/hosts
@@ -89,11 +90,11 @@ public class EtcHostsManager {
                 boolean isMyOwnEntry = entry.getKey().equals(key);
                 String fqdn = entry.getValue();
                 if (fqdn.endsWith("."))
-                    fqdn = fqdn.substring(0, fqdn.length()-1);
+                    fqdn = fqdn.substring(0, fqdn.length() - 1);
                 int dotAt = fqdn.indexOf('.');
                 String[] values = dotAt > 0
-                        ? new String[] { fqdn, fqdn.substring(0, dotAt) }
-                        : new String[] { fqdn };
+                        ? new String[]{fqdn, fqdn.substring(0, dotAt)}
+                        : new String[]{fqdn};
 
                 if (isMyOwnEntry)
                     commands.add(BashCommands.prependToEtcHosts(ip.get(), values));
@@ -117,7 +118,7 @@ public class EtcHostsManager {
      * Scans the entities, determines the IP address and hostname for each entity, and returns a map that connects from
      * IP address to fully-qualified domain name.
      *
-     * @param entities entities to search for name/IP information.
+     * @param entities      entities to search for name/IP information.
      * @param addressSensor the sensor containing the IP address for each entity.
      * @return a map with an entry for each entity, mapping its IP address to its fully-qualified domain name.
      */
