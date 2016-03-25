@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
-import io.brooklyn.ambari.rest.domain.HostGroup;
 import org.apache.brooklyn.api.entity.Entity;
 import org.apache.brooklyn.api.mgmt.Task;
 import org.apache.brooklyn.core.annotation.EffectorParam;
@@ -39,7 +38,7 @@ import org.apache.brooklyn.entity.software.base.SoftwareProcessImpl;
 import org.apache.brooklyn.feed.http.HttpFeed;
 import org.apache.brooklyn.feed.http.HttpPollConfig;
 import org.apache.brooklyn.feed.http.HttpValueFunctions;
-import org.apache.brooklyn.util.http.HttpTool;
+import org.apache.brooklyn.util.core.http.HttpTool;
 import org.apache.brooklyn.util.core.task.DynamicTasks;
 import org.apache.brooklyn.util.core.task.Tasks;
 import org.apache.brooklyn.util.guava.Functionals;
@@ -64,6 +63,7 @@ import io.brooklyn.ambari.AmbariCluster;
 import io.brooklyn.ambari.rest.AmbariApiException;
 import io.brooklyn.ambari.rest.AmbariRequestInterceptor;
 import io.brooklyn.ambari.rest.RequestCheckRunnable;
+import io.brooklyn.ambari.rest.domain.HostGroup;
 import io.brooklyn.ambari.rest.domain.RecommendationWrapper;
 import io.brooklyn.ambari.rest.domain.RecommendationWrappers;
 import io.brooklyn.ambari.rest.domain.Request;
