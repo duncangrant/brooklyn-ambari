@@ -314,7 +314,7 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
 
         LOG.info("{} calling pre-cluster-deploy on all Ambari nodes", this);
         try {
-            Task<List<?>> preClusterDeployTasks = createParallelTask("preClusterDeploy", new PreClusterDeployFunction());
+            Task<List<?>> preClusterDeployTasks = createExtraServicesParallelTask("preClusterDeploy", new PreClusterDeployFunction());
             Entities.submit(this, preClusterDeployTasks).get();
         } catch (ExecutionException | InterruptedException ex) {
             // If something failed within an extra service, we propagate the exception for the cluster to handle it properly.
@@ -344,7 +344,7 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
 
         LOG.info("{} calling post-cluster-deploy on all Ambari nodes", this);
         try {
-            Task<List<?>> postDeployClusterTasks = createParallelTask("postClusterDeploy", new PostClusterDeployFunction());
+            Task<List<?>> postDeployClusterTasks = createExtraServicesParallelTask("postClusterDeploy", new PostClusterDeployFunction());
             Entities.submit(this, postDeployClusterTasks).get();
         } catch (ExecutionException | InterruptedException ex) {
             // If something failed within an extra service, we propagate the exception for the cluster to handle it properly.
@@ -445,7 +445,7 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
                 : null;
     }
 
-    private Task<List<?>> createParallelTask(String taskName, final Function<ExtraService, ?> fn) {
+    public Task<List<?>> createExtraServicesParallelTask(String taskName, final Function<ExtraService, ?> fn) {
         List<Task<?>> tasks = Lists.newArrayList();
         for (final ExtraService extraService : getExtraServices()) {
             Task<?> t = Tasks.builder()
@@ -465,7 +465,7 @@ public class AmbariClusterImpl extends BasicStartableImpl implements AmbariClust
     }
 
     @Nonnull
-    private Iterable<ExtraService> getExtraServices() {
+    public Iterable<ExtraService> getExtraServices() {
         return Entities.descendants(this, ExtraService.class);
     }
 
