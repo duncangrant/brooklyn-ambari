@@ -94,6 +94,7 @@ public class AmbariAgentSshDriver extends JavaSoftwareProcessSshDriver implement
                 ImmutableList.<String>builder()
                         .add(defaultAmbariInstallHelper.installAmbariRequirements(getMachine()))
                         .addAll(BashCommands.setHostname(fqdn))
+                        .add("for f in {1..10}; do x=`hostname -f`; [[ $x == " + fqdn + " ]] && break; echo $f; sleep 1; done")
                         .add(installPackage("ambari-agent"))
                         .build();
 

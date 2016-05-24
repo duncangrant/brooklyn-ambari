@@ -10,7 +10,7 @@ Ambari stacks to those servers.
 
 This blueprint currently uses the following dependencies:
 
-- Apache Ambari **2.1.2**
+- Apache Ambari **2.2.0.0**
 - HDP stack definition **2.3**
 
 
@@ -66,12 +66,12 @@ To build an assembly, simply run:
     mvn clean install
 
 This creates a tarball with a full standalone application which can be installed in any *nix machine at:
-    dist/target/brooklyn-ambari-dist.tar.gz
+    launcher/target/brooklyn-ambari-launcher.tar.gz
 
-It also installs an unpacked version which you can run locally:
+It also builds an unpacked version which you can run locally:
  
-     cd dist/target/brooklyn-ambari-dist/brooklyn-ambari/
-     ./start.sh launch -l <location> --ambari
+     cd launcher/target/brooklyn-ambari-launcher/brooklyn-ambari/
+      ./start.sh launch -l <location> --ambari
 
 For more information see the README (or `./start.sh help`) in that directory.
 
@@ -141,8 +141,9 @@ Users can then provision an Ambari cluster using the YAML shown in the first sec
 
 ### Usage
 
-To add an extra service to the cluster (i.e. not fully supported by the default stack, such as [Apache Ranger](http://ranger.incubator.apache.org/)
-or [Apache Spark](http://spark.apache.org/)) the new configuration key `extraServices` can be used:
+Some services that can be installed by ambari require steps pre cluster deployment or post
+cluster deployment. These extra steps can be defined by extending the ExtraService interface.  An
+example of this can be seen in the code for io.brooklyn.ambari.service.Ranger.
 
     ...
     services:
@@ -163,7 +164,7 @@ An extra service has three configuration keys:
  mechanism of `componentNames` configuration key. This is **not needed** if you have a service based deployment.
 - `serviceName`: use to specify the name of the extra service to install. This is **required** if you have a services
  based deployment.
-- `componentNames`: use to specify the names of the extra service's components. This is **required** if you have a host
+- `componentNames`: use to specify the names of the extra service's components. This is **optional** if you have a host
  group based deployment. Foir each entry, you can pass only the component name (as the above example) or the mapping of
  component name <-> host group name like so: `<COMPONENT_NAME>|<HOST_GROUP_NAME>`. If there is no mapping specify, the
  component will be bind to the host group specify by the configuration key `bindTo`.
@@ -181,7 +182,7 @@ command:
     mvn archetype:generate \
         -DarchetypeGroupId=io.brooklyn.ambari \
         -DarchetypeArtifactId=brooklyn-ambari-service \
-        -DarchetypeVersion=0.2.0-SNAPSHOT \
+        -DarchetypeVersion=0.5.0-SNAPSHOT \
         -DgroupId=<my.groupid> \
         -DartifactId=<my-artifactId>
   
