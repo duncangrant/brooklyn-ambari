@@ -42,25 +42,28 @@ brooklyn.catalog:
 
       brooklyn.children:
       - type: io.brooklyn.ambari.AmbariCluster
-        name: "Ambari cluster"
-        brooklyn.config:
-          initialSize: $brooklyn:config("ambari.cluster.nodes")
-          provisioning.properties:
-            securityGroupIds: 
-            - test-ambari
-            minRam: 8192
-            osFamily: ubuntu
-            osVersionRegex: 14
-          ambariConfigMap:
-            hdfs-site:
-              dfs.webhdfs.enabled: true
-              dfs.permissions.enabled: false
-            httpfs-site:
-              httpfs.proxyuser.hue: '*'
-              httpfs.proxyuser.hue.groups: '*'
-          services:
-          - HBASE
-          - HDFS
-          - MAPREDUCE2
-          - YARN
-          - ZOOKEEPER
+        brooklyn.children:
+        - type: io.brooklyn.ambari.hostgroup.AmbariHostGroup
+          name: NameNode
+          brooklyn.config:
+            provisioning.properties:
+              inboundPorts: [22, 8080]
+          brooklyn.config:
+            components:
+            - AMBARI_SERVER
+            - ZOOKEEPER_CLIENT
+            - NAMENODE
+            - HBASE_MASTER
+            - HDFS_CLIENT
+            - YARN_CLIENT
+            - MAPREDUCE2_CLIENT
+            - ZOOKEEPER_SERVER
+            - HBASE_CLIENT
+        - type: io.brooklyn.ambari.hostgroup.AmbariHostGroup
+          name: DataNode
+          brooklyn.config:
+            components:
+            - HBASE_REGIONSERVER
+            - ZOOKEEPER_SERVER
+            - NODEMANAGER
+            - DATANODE

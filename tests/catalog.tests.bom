@@ -1,0 +1,32 @@
+brooklyn.catalog:
+  version: 0.0.2
+
+  items:
+  - "https://raw.githubusercontent.com/brooklyncentral/common-catalog-utils/master/common-tests/src/main/resources/commontests/common.tests.bom"
+
+  - id: ambari-cluster-tests
+    itemType: template
+    item:
+      services:
+      - type: ambari-cluster-application
+        id: target-app
+        name: HDP cluster
+
+      - type: test-case
+        brooklyn.config:
+          targetId: target-app
+          targetResolutionTimeout: 10s
+          timeout: 40m
+
+        brooklyn.children:
+
+        - type: test-case
+          name: "1. HDP cluster deployed"
+          brooklyn.children:
+          - type: assert-up-and-running-initial
+            name: "1.1 Node up and running"
+          - type: assert-sensor
+            name: "HDP services deployed"
+            sensor: ambari.server.clusterState
+            assert:
+              - equals: "COMPLETED"
